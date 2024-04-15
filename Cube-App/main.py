@@ -11,18 +11,6 @@ def open_file_dialog():
         show_graph_screen(file_path)
 
 def show_graph_screen(file_path):
-    graph_screen = tk.Tk()
-    graph_screen.title("Graph with Sliders and Text Fields")
-    frame = ttk.Frame(graph_screen)
-    frame.grid(row=0, column=0, padx=10, pady=10)
-    fig = Figure(figsize=(5, 4), dpi=100)
-    ax = fig.add_subplot(111)
-    canvas = FigureCanvasTkAgg(fig, master=frame)
-    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-    center_frame = ttk.Frame(graph_screen)
-    center_frame.grid(row=1, column=0, padx=10, pady=10)
-    center_frame.columnconfigure(0, weight=1)
-
     def update_plot(*args):
         Zfar_value = float(Zfar_slider.get())
         Znear_value = float(Znear_slider.get())
@@ -99,18 +87,33 @@ def show_graph_screen(file_path):
         event.widget.icursor(0)
         event.widget.select_range(0, 'end')
 
-    def create_label_slider_entry(name, default_value, from_, to, row):
-        label = ttk.Label(center_frame, text=name)
+    def create_label_slider_entry(name, default_value, from_, to, row, parent):
+        label = ttk.Label(parent, text=name)
         label.grid(row=row, column=0, padx=10, pady=5)
-        slider = ttk.Scale(center_frame, from_=from_, to=to, command=lambda x: update_from_slider(slider, entry))
+        slider = ttk.Scale(parent, from_=from_, to=to, command=lambda x: update_from_slider(slider, entry))
         slider.grid(row=row, column=1, padx=10, pady=5)
-        entry = ttk.Entry(center_frame)
+        entry = ttk.Entry(parent)
         entry.grid(row=row, column=2, padx=10, pady=5)
         entry.insert(0, default_value)
         entry.bind("<FocusIn>", select_all)
         slider.bind("<ButtonRelease-1>", lambda event: update_from_entry(entry, slider))
         entry.bind("<Return>", lambda event: update_from_entry(entry, slider))
         return label, slider, entry
+
+    graph_screen = tk.Tk()
+    graph_screen.title("Graph with Sliders and Text Fields")
+
+    # Main frame for graph display
+    graph_frame = ttk.Frame(graph_screen)
+    graph_frame.grid(row=0, column=0, padx=10, pady=10)
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+    canvas = FigureCanvasTkAgg(fig, master=graph_frame)
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+    # Frame for sliders and buttons
+    control_frame = ttk.Frame(graph_screen)
+    control_frame.grid(row=0, column=1, padx=10, pady=10)
 
     object = []
     with open(file_path, 'r') as f:
@@ -120,25 +123,34 @@ def show_graph_screen(file_path):
         object = np.array(object).astype(float)
 
     row = 0
-    XY_label, XY_slider, XY_entry = create_label_slider_entry(name="XY Plane Rotations:", default_value="0.0", from_=-180, to=180, row=row)
-    Zfar_label, Zfar_slider, Zfar_entry = create_label_slider_entry(name="Zfar:", default_value="-10.0", from_=-10, to=10, row=row + 1)
-    Znear_label, Znear_slider, Znear_entry = create_label_slider_entry("Znear:", default_value="-3.0", from_=-10, to=10, row=row + 2)
-    dX_label, dX_slider, dX_entry = create_label_slider_entry("dX:", default_value="-0.2", from_=-10, to=10, row=row + 3)
-    dY_label, dY_slider, dY_entry = create_label_slider_entry("dY:", default_value="-0.5", from_=-10, to=10, row=row + 4)
-    camx_label, camx_slider, camx_entry = create_label_slider_entry("cam x:", default_value="1.0", from_=-10, to=10, row=row + 5)
-    camy_label, camy_slider, camy_entry = create_label_slider_entry("cam y:", default_value="1.0", from_=-10, to=10, row=row + 6)
-    K1_label, K1_slider, K1_entry = create_label_slider_entry("K1:", default_value="1.0", from_=-10, to=10, row=row + 7)
+    XY_label, XY_slider, XY_entry = create_label_slider_entry(name="XY Plane Rotations:", default_value="0.0",
+                                                              from_=-180, to=180, row=row, parent=control_frame)
+    Zfar_label, Zfar_slider, Zfar_entry = create_label_slider_entry(name="Zfar:", default_value="-10.0", from_=-10,
+                                                                    to=10, row=row + 1, parent=control_frame)
+    Znear_label, Znear_slider, Znear_entry = create_label_slider_entry("Znear:", default_value="-3.0", from_=-10, to=10,
+                                                                       row=row + 2, parent=control_frame)
+    dX_label, dX_slider, dX_entry = create_label_slider_entry("dX:", default_value="-0.2", from_=-10, to=10, row=row + 3,
+                                                              parent=control_frame)
+    dY_label, dY_slider, dY_entry = create_label_slider_entry("dY:", default_value="-0.5", from_=-10, to=10, row=row + 4,
+                                                              parent=control_frame)
+    camx_label, camx_slider, camx_entry = create_label_slider_entry("cam x:", default_value="1.0", from_=-10, to=10,
+                                                                    row=row + 5, parent=control_frame)
+    camy_label, camy_slider, camy_entry = create_label_slider_entry("cam y:", default_value="1.0", from_=-10, to=10,
+                                                                    row=row + 6, parent=control_frame)
+    K1_label, K1_slider, K1_entry = create_label_slider_entry("K1:", default_value="1.0", from_=-10, to=10, row=row + 7,
+                                                              parent=control_frame)
+
     apply_values()
-    apply_button = ttk.Button(graph_screen, text="Apply", command=apply_values)
-    apply_button.grid(row=row + 8, column=0, padx=10, pady=5)
-    reset_button = ttk.Button(graph_screen, text="Reset", command=reset_values)
-    reset_button.grid(row=row + 9, column=0, padx=10, pady=5)
+    apply_button = ttk.Button(control_frame, text="Apply", command=apply_values)
+    apply_button.grid(row=row + 8, column=0, padx=10, pady=5, sticky="ew")
+    reset_button = ttk.Button(control_frame, text="Reset", command=reset_values)
+    reset_button.grid(row=row + 9, column=0, padx=10, pady=5, sticky="ew")
     update_plot()
     graph_screen.mainloop()
 
 root = tk.Tk()
 root.title("File Selection")
-root.geometry("400x300")
+root.geometry("600x400")
 
 open_button = tk.Button(root, text="Open File", command=open_file_dialog)
 open_button.pack(pady=(root.winfo_reqheight() - open_button.winfo_reqheight()) / 2)
